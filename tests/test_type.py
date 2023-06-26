@@ -32,16 +32,55 @@ class MyModel(models.Model):
         return "some_value"
 
 
+class AnotherModel(models.Model):
+    class Meta:
+        app_label = "tests"
+
+    id = models.BigAutoField(  # noqa: A003
+        primary_key=True,
+    )
+
+    @property
+    def some_property(self) -> str:
+        """Some property doc."""
+        return "some_value"
+
+    @cached_property
+    def some_cached_property(self) -> str:
+        """Some cached property doc."""
+        return "some_value"
+
+    @gql.model_property
+    def some_model_property(self) -> str:
+        """Some model property doc."""
+        return "some_value"
+
+
 def test_property():
+    class CommonType:
+        id: strawberry.ID
+
     @gql.django.type(MyModel)
     class MyType:
+        some_property: gql.auto
+
+    @gql.django.type(AnotherModel)
+    class AnotherType(CommonType):
         some_property: gql.auto
 
     @strawberry.type
     class Query:
         some_type: MyType
+        another_type: AnotherType
 
     expected_representation = '''
+    type AnotherType {
+      id: ID!
+
+      """Some property doc."""
+      someProperty: String!
+    }
+
     type MyType {
       """Some property doc."""
       someProperty: String!
@@ -49,6 +88,7 @@ def test_property():
 
     type Query {
       someType: MyType!
+      anotherType: AnotherType!
     }
     '''
 
