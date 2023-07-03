@@ -57,6 +57,7 @@ class AnotherModel(models.Model):
 
 
 def test_property():
+    @strawberry.type
     class CommonType:
         id: strawberry.ID
 
